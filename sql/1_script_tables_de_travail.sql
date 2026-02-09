@@ -13,7 +13,6 @@ SET search_path TO psch;
 -- on ne corrige pas en profondeur les champs qu'on n'utilisera pas
 
 CREATE TABLE TMP_CNC AS (
-
 SELECT 
     CAST(rc."régionCNC" AS INTEGER) AS region_cnc,
     CAST(rc."N° auto" AS INTEGER) AS n_auto,
@@ -24,8 +23,8 @@ SELECT
     rc.commune AS commune,
     rc."population de la commune" AS population_commune,
     CAST(CASE 
-        	WHEN UPPER(TRIM(re."DEP")) IN ('2A', '2B') THEN '20'
-        	ELSE re."DEP"
+        	WHEN Trim(rc."DEP") IN ('2A', '2B') THEN '20'
+        	ELSE rc."DEP"
     	END AS INTEGER) AS departement, 
     rc."N°UU" AS n_uu,
     rc."unité urbaine" AS unite_urbaine, 
@@ -67,8 +66,7 @@ SELECT
     CAST(REGEXP_REPLACE(REPLACE(rc."PdM en entrées des films Art et Essai", ',', '.'), '[^0-9.]', '', 'g') AS REAL) AS pdm_films_ae,
     CAST(rc.latitude AS REAL) AS latitude, 
     CAST(rc.longitude AS REAL) AS longitude
-FROM raw_cnc rc
-);
+FROM raw_cnc rc );
 
 -- jeux de données sur les cinémas de data.gouv
 
@@ -76,7 +74,6 @@ FROM raw_cnc rc
 
 
 CREATE TABLE TMP_etab_cine AS (
-
 SELECT 
     CAST(re."régionCNC" AS INTEGER) AS region_cnc,
     CAST(re."N° auto" AS INTEGER) AS n_auto,
@@ -123,8 +120,7 @@ SELECT
     CAST(re."PdM en entrées des films Art et Essai" AS REAL) AS pdm_films_ae,
     CAST(re.latitude AS REAL) AS latitude, 
     CAST(re.longitude AS REAL) AS longitude
-FROM raw_etab_cine re
-);
+FROM raw_etab_cine re );
 
 
 -- jeux de données sur la programmation des cinémas indépendants
@@ -163,14 +159,12 @@ select
    	TRIM(INITCAP(rp.cineville)) as ville,
    	rp.description,
    	rp.auditoriumcapacity as nbr_place
-from raw_prog rp
-);
+from raw_prog rp);
 	
 	
 -- jeux de données sur le RSA	
 
 CREATE TABLE TMP_rsa AS (
-
 select
 	-- les données ont ete interpretées comme text mais ce sont des dates au format aaaa-mm, j'ai rajouté un jour unique pour qu'elles soient interpretées correctement, cela n'aura pas d'insidance 
 	CAST(rsa."Date référence" || '-01' AS DATE) AS date_ref,
@@ -179,8 +173,7 @@ select
 	TRIM(INITCAP(rsa."Nom commune")) as commune,
 	rsa."Nombre foyers RSA" as nbr_foyer_rsa,
 	rsa."Nombre personnes RSA" as nbr_pers_rsa
-from raw_rsa rsa
-);
+from raw_rsa rsa);
 
 
 
@@ -196,11 +189,10 @@ SELECT
     rw."realisateurLabel" AS realisateur,
     rw.duree,
     rw."genreLabel" AS genre,
-    EXTRACT(YEAR FROM rw."dateLabel")::INTEGER AS annee_sortie,
+    EXTRACT(YEAR FROM (NULLIF(rw."dateLabel", '')::TIMESTAMP))::INTEGER AS annee_sortie,
     -- j'ai eu beauuuucoup de mal à faire fonctionner ca, uniformiser les formats de notation
     -- emploi du raccourcis :: car je n'arrivais pas a faire compiler tout cela avec la fonction cast
-    (
-        case
+    (case
 	        -- pour les notes en %, enlever le %
             WHEN rw."note" ~ '^[0-9]+(\.[0-9]+)?%$' THEN
                 REPLACE(rw."note", '%', '')::numeric
@@ -218,12 +210,15 @@ SELECT
             WHEN rw."note" ~ '^[0-9]+(\.[0-9]+)?$' THEN
                 rw."note"::NUMERIC
 
-            ELSE NULL
-        END
+            ELSE null
+END
     )::INTEGER AS note_sur_100
-FROM raw_wikidata1 rw
-);
-	-- ce traitement est dédoublé car nous avons du scinder le csv en 2 du a son volume trop important
+FROM raw_wikidata1 rw);
+
+
+
+
+-- le script est doublé par ce que le csv a du etre scindé en deux car trop lourd
 CREATE TABLE TMP_wiki2 AS (
 SELECT 
     rd.film AS film_entity,
@@ -232,9 +227,8 @@ SELECT
     rd."realisateurLabel" AS realisateur,
     rd.duree,
     rd."genreLabel" AS genre,
-    EXTRACT(YEAR FROM rw."dateLabel")::INTEGER AS annee_sortie,
-    (
-        case
+    EXTRACT(YEAR FROM (NULLIF(rd."dateLabel", '')::TIMESTAMP))::INTEGER AS annee_sortie,
+    (case
 	        -- pour les notes en %, enlever le %
             WHEN rd."note" ~ '^[0-9]+(\.[0-9]+)?%$' THEN
                 REPLACE(rd."note", '%', '')::numeric
@@ -252,8 +246,8 @@ SELECT
             WHEN rd."note" ~ '^[0-9]+(\.[0-9]+)?$' THEN
                 rd."note"::NUMERIC
 
-            ELSE NULL
-        END
+            ELSE null
+END
     )::INTEGER AS note_sur_100
 FROM raw_wikidata2 rd
 );
