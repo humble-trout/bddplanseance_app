@@ -223,7 +223,7 @@ SELECT
     )::INTEGER AS note_sur_100
 FROM raw_wikidata1 rw
 );
-
+	-- ce traitement est dédoublé car nous avons du scinder le csv en 2 du a son volume trop important
 CREATE TABLE TMP_wiki2 AS (
 SELECT 
     rd.film AS film_entity,
@@ -233,8 +233,6 @@ SELECT
     rd.duree,
     rd."genreLabel" AS genre,
     EXTRACT(YEAR FROM rw."dateLabel")::INTEGER AS annee_sortie,
-    -- j'ai eu beauuuucoup de mal à faire fonctionner ca, uniformiser les formats de notation
-    -- emploi du raccourcis :: car je n'arrivais pas a faire compiler tout cela avec la fonction cast
     (
         case
 	        -- pour les notes en %, enlever le %
