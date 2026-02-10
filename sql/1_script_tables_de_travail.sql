@@ -33,7 +33,7 @@ SELECT
     CAST(rc."écrans" AS INTEGER) AS ecrans, 
     CAST(rc.fauteuils AS INTEGER) AS fauteuils, 
     CAST(rc."semaines d'activité" AS INTEGER) AS semaines_activite, 
-    CAST(REGEXP_REPLACE(rc."séances", '[^0-9]', '', 'g') AS INTEGER) AS seances, 
+    CAST(REGEXP_REPLACE(rc."séances", '[^0-9]', '', 'g') AS INTEGER) AS seances_annuelles, 
     CAST(REGEXP_REPLACE(rc."entrées 2024", '[^0-9]', '', 'g') AS INTEGER) AS entree_24, 
     --corriger pb de vide
     CAST(REGEXP_REPLACE(NULLIF(rc."entrées 2023", ''), '[^0-9]', '', 'g') AS INTEGER) AS entree_23,
