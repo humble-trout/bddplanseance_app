@@ -186,9 +186,11 @@ SELECT
     rw.film AS film_entity,
     INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rw."filmLabel", '^Q[0-9]+$', ''),
         ''))) AS titre,
-    rw."realisateurLabel" AS realisateur,
+	INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rw."realisateurLabel", '^Q[0-9]+$', ''),
+        ''))) AS realisateur,
     rw.duree,
-    rw."genreLabel" AS genre,
+   INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rw."genreLabel", '^Q[0-9]+$', ''),
+        ''))) AS genre,
     EXTRACT(YEAR FROM (NULLIF(rw."dateLabel", '')::TIMESTAMP))::INTEGER AS annee_sortie,
     -- j'ai eu beauuuucoup de mal à faire fonctionner ca, uniformiser les formats de notation
     -- emploi du raccourcis :: car je n'arrivais pas a faire compiler tout cela avec la fonction cast
