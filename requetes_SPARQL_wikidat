@@ -1,0 +1,265 @@
+Extraction des informations de wikidata : 
+
+
+Nous avons effectué plusieurs requêtes SPARQL via Wikidata Query service afin d'obtenir des informations sur les films. Il n'était pas possible de rechercher
+toutes les informations dont nous avions besoin en une requête SPARQL, c'est pourquoi nous en avons fait plusieurs. 
+Chaque requête nous a permis d'obtenir un csv, et nous avons tout fusionné en deux fichiers csv issus de wikidata : l'un recense des informations sur les films du XXè siècle, et l'autre sur des films
+du XXIè siècle. 
+
+Voici donc les requêtes effectuées : 
+
+REQUETE POUR LES FILMS DES ANNÉES 60 : 
+
+SELECT ?film ?filmLabel ?realisateurLabel ?duree ?genreLabel ?dateLabel ?note
+WHERE {
+  ?film wdt:P31 wd:Q11424;      
+        wdt:P57 ?realisateur;     
+        wdt:P577 ?date.           
+
+
+  FILTER (
+    ?date >= "1960-01-01T00:00:00Z"^^xsd:dateTime &&
+    ?date <= "1970-12-31T23:59:59Z"^^xsd:dateTime
+  )
+
+  OPTIONAL { ?film wdt:P2047 ?duree. }  # Durée
+
+
+  OPTIONAL {
+    SELECT ?film (SAMPLE(?genre) AS ?genre)
+    WHERE {
+      ?film wdt:P136 ?genre.
+    }
+    GROUP BY ?film
+  }
+
+  OPTIONAL {
+    SELECT ?film (SAMPLE(?note) AS ?note)
+    WHERE {
+      ?film wdt:P444 ?note.
+    }
+    GROUP BY ?film
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "fr". }
+}
+
+
+
+
+REQUETE POUR LES FILMS DES ANNÉES 70 : 
+
+SELECT ?film ?filmLabel ?realisateurLabel ?duree ?genreLabel ?dateLabel ?note
+WHERE {
+  ?film wdt:P31 wd:Q11424;      
+        wdt:P57 ?realisateur;     
+        wdt:P577 ?date.           
+
+
+  FILTER (
+    ?date >= "1971-01-01T00:00:00Z"^^xsd:dateTime &&
+    ?date <= "1980-12-31T23:59:59Z"^^xsd:dateTime
+  )
+
+  OPTIONAL { ?film wdt:P2047 ?duree. }  # Durée
+
+
+  OPTIONAL {
+    SELECT ?film (SAMPLE(?genre) AS ?genre)
+    WHERE {
+      ?film wdt:P136 ?genre.
+    }
+    GROUP BY ?film
+  }
+
+  OPTIONAL {
+    SELECT ?film (SAMPLE(?note) AS ?note)
+    WHERE {
+      ?film wdt:P444 ?note.
+    }
+    GROUP BY ?film
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "fr". }
+}
+
+
+
+REQUETE POUR LES FILMS DES ANNÉES 80 : 
+
+SELECT ?film ?filmLabel ?realisateurLabel ?duree ?genreLabel ?dateLabel ?note
+WHERE {
+  ?film wdt:P31 wd:Q11424;        # Instance de film
+        wdt:P57 ?realisateur;     # Réalisateur
+        wdt:P577 ?date.           # Date de publication
+
+
+  FILTER (
+    ?date >= "1981-01-01T00:00:00Z"^^xsd:dateTime &&
+    ?date <= "1990-12-31T23:59:59Z"^^xsd:dateTime
+  )
+
+  OPTIONAL { ?film wdt:P2047 ?duree. }  # Durée
+
+
+  OPTIONAL {
+    SELECT ?film (SAMPLE(?genre) AS ?genre)
+    WHERE {
+      ?film wdt:P136 ?genre.
+    }
+    GROUP BY ?film
+  }
+
+
+  OPTIONAL {
+    SELECT ?film (SAMPLE(?note) AS ?note)
+    WHERE {
+      ?film wdt:P444 ?note.
+    }
+    GROUP BY ?film
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "fr". }
+}
+
+REQUETE POUR LES FILMS DES ANNÉES 90 : 
+
+SELECT ?film ?filmLabel ?realisateurLabel ?duree ?genreLabel ?dateLabel ?note
+WHERE {
+  ?film wdt:P31 wd:Q11424;        # Instance de film
+        wdt:P57 ?realisateur;     # Réalisateur
+        wdt:P577 ?date.           # Date de publication
+
+
+  FILTER (
+    ?date >= "1991-01-01T00:00:00Z"^^xsd:dateTime &&
+    ?date <= "1999-12-31T23:59:59Z"^^xsd:dateTime
+  )
+
+  OPTIONAL { ?film wdt:P2047 ?duree. }  # Durée
+
+
+  OPTIONAL {
+    SELECT ?film (SAMPLE(?genre) AS ?genre)
+    WHERE {
+      ?film wdt:P136 ?genre.
+    }
+    GROUP BY ?film
+  }
+
+
+  OPTIONAL {
+    SELECT ?film (SAMPLE(?note) AS ?note)
+    WHERE {
+      ?film wdt:P444 ?note.
+    }
+    GROUP BY ?film
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "fr". }
+}
+
+
+
+REQUETE POUR LES FILMS DE 2000 à 2010 : 
+
+SELECT ?film ?filmLabel ?realisateurLabel ?duree ?genreLabel ?dateLabel ?note
+WHERE {
+  ?film wdt:P31 wd:Q11424;
+        wdt:P57 ?realisateur;
+        wdt:P577 ?date.
+
+  FILTER (
+    ?date >= "2000-01-01T00:00:00Z"^^xsd:dateTime &&
+    ?date <= "2009-12-31T00:00:00Z"^^xsd:dateTime 
+  )
+
+  OPTIONAL { ?film wdt:P2047 ?duree. }
+
+
+  OPTIONAL {
+    SELECT ?film (SAMPLE(?genre) AS ?genre)
+    WHERE {
+      ?film wdt:P136 ?genre.
+    }
+    GROUP BY ?film
+  }
+
+ 
+  OPTIONAL {
+    SELECT ?film (SAMPLE(?note) AS ?note)
+    WHERE {
+      ?film wdt:P444 ?note.
+    }
+    GROUP BY ?film
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "fr". }
+}
+REQUÊTE POUR LES FILMS ENTRE 2010 ET 2024 : 
+
+SELECT ?film ?filmLabel ?realisateurLabel ?duree ?genreLabel ?dateLabel ?note
+WHERE {
+  ?film wdt:P31 wd:Q11424;
+        wdt:P57 ?realisateur;
+        wdt:P577 ?date.
+
+  FILTER (
+    ?date >= "2010-01-01T00:00:00Z"^^xsd:dateTime &&
+    ?date <= "2024-12-31T23:59:59Z"^^xsd:dateTime
+  )
+
+  OPTIONAL { ?film wdt:P2047 ?duree. }
+
+  OPTIONAL {
+    SELECT ?film (SAMPLE(?genre) AS ?genre)
+    WHERE {
+      ?film wdt:P136 ?genre.
+    }
+    GROUP BY ?film
+  }
+
+  OPTIONAL {
+    SELECT ?film (SAMPLE(?note) AS ?note)
+    WHERE {
+      ?film wdt:P444 ?note.
+    }
+    GROUP BY ?film
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "fr". }
+}
+
+REQUÊTE POUR LES FILMS POSTÉRIEURS À 2025 (Cette requête sert à obtenir beaucoup plus d'informations sur les films qui viennent de sortir, 
+pour qu'ils puissent correspondre avec nos jeux de données liés à la programmation des cinémas) : 
+
+SELECT ?film ?filmLabel ?realisateurLabel ?duree ?genreLabel ?dateLabel ?note
+WHERE {
+  ?film wdt:P31 wd:Q11424;
+        wdt:P57 ?realisateur;
+        wdt:P577 ?date.
+
+  FILTER (
+    ?date  > "2025-01-01T00:00:00Z" ^^xsd:dateTime
+  )
+
+  OPTIONAL { ?film wdt:P2047 ?duree. }
+
+  OPTIONAL {
+    SELECT ?film (SAMPLE(?genre) AS ?genre)
+    WHERE {
+      ?film wdt:P136 ?genre.
+    }
+    GROUP BY ?film
+  }
+
+  OPTIONAL {
+    SELECT ?film (SAMPLE(?note) AS ?note)
+    WHERE {
+      ?film wdt:P444 ?note.
+    }
+    GROUP BY ?film
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "fr". }
+}
