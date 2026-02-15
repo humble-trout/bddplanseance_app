@@ -17,6 +17,8 @@ DROP table tmp_rsa ;
 
 DROP table tmp_rsa_cnc ;
 
+DROP table tmp_titre ;
+
 DROP table tmp_wiki1 ;
 
 DROP table tmp_wiki2 ;
