@@ -7,17 +7,19 @@ SET search_path TO psch;
 
 --tables à supp : temporaire
 
-DROP table TMP_CNC ;
+DROP table tmp_cnc ;
 
-DROP table TMP_etab_cine ;
+DROP table tmp_etab_cine ;
 
-DROP table TMP_programmation ;
+DROP table tmp_programmation ;
 
-DROP table TMP_rsa ;
+DROP table tmp_rsa ;
 
-DROP table TMP_wiki1 ;
+DROP table tmp_rsa_cnc ;
 
-DROP table TMP_wiki2 ;
+DROP table tmp_wiki1 ;
+
+DROP table tmp_wiki2 ;
 
 
 commit ;
