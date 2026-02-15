@@ -184,13 +184,10 @@ from raw_rsa rsa);
 CREATE TABLE if not exists TMP_wiki1 AS (
 SELECT 
     rw.film AS film_entity,
-    INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rw."filmLabel", '^Q[0-9]+$', ''),
-        ''))) AS titre,
-	INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rw."realisateurLabel", '^Q[0-9]+$', ''),
-        ''))) AS realisateur,
+    INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rw."filmLabel", '^Q[0-9]+$', ''), ''))) AS titre,
+	INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rw."realisateurLabel", '^Q[0-9]+$', ''), ''))) AS realisateur,
     rw.duree,
-   INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rw."genreLabel", '^Q[0-9]+$', ''),
-        ''))) AS genre,
+    INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rw."genreLabel", '^Q[0-9]+$', ''), ''))) AS genre,
     EXTRACT(YEAR FROM (NULLIF(rw."dateLabel", '')::TIMESTAMP))::INTEGER AS annee_sortie,
     -- j'ai eu beauuuucoup de mal à faire fonctionner ca, uniformiser les formats de notation
     -- emploi du raccourcis :: car je n'arrivais pas a faire compiler tout cela avec la fonction cast
@@ -224,11 +221,10 @@ FROM raw_wikidata1 rw);
 CREATE TABLE if not exists TMP_wiki2 AS (
 SELECT 
     rd.film AS film_entity,
-    INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rd."filmLabel", '^Q[0-9]+$', ''),
-        ''))) AS titre,
-    rd."realisateurLabel" AS realisateur,
+    INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rd."filmLabel", '^Q[0-9]+$', ''), ''))) AS titre,
+    INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rd."realisateurLabel", '^Q[0-9]+$', ''), ''))) AS realisateur,
     rd.duree,
-    rd."genreLabel" AS genre,
+    INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rd."genreLabel", '^Q[0-9]+$', ''), ''))) AS genre,
     EXTRACT(YEAR FROM (NULLIF(rd."dateLabel", '')::TIMESTAMP))::INTEGER AS annee_sortie,
     (case
 	        -- pour les notes en %, enlever le %
