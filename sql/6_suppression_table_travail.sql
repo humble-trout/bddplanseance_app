@@ -11,11 +11,13 @@ DROP table tmp_cnc ;
 
 DROP table tmp_etab_cine ;
 
-DROP table tmp_programmation ;
+DROP table tmp_programation ;
 
 DROP table tmp_rsa ;
 
-DROP table tmp_rsa_cnc ;
+DROP TABLE raw_wikidata1 ; 
+
+DROP TABLE raw_wikidata2 ; 
 
 DROP table tmp_titre ;
 

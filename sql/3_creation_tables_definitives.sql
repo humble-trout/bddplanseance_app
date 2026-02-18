@@ -59,7 +59,8 @@ SELECT DISTINCT
 	titre,
 	genre,
 	realisateur
-FROM tmp_programmation tp ;
+FROM tmp_programation tp 
+where titre is not null;
 
 --importer les id_film depuis tmp_titre
 UPDATE film f
@@ -121,14 +122,15 @@ create table if not exists aire_geographique
 	region INTEGER NOT NULL,
 	nom_region VARCHAR,   
 	type_rsa VARCHAR,
-	nb_foyers INTEGER,
-	nb_personnes INTEGER
+	nb_foyers_rsa INTEGER,
+	nb_personnes_rsa INTEGER,
+	nb_habitants INTEGER
 );
 
 --Remplissage de la table aire_geographique
 insert into aire_geographique 
 (commune, code_insee, code_departement, region, nom_region, type_rsa,
-nb_foyers, nb_personnes)
+nb_foyers_rsa, nb_personnes_rsa, nb_habitants)
 select distinct 
 	a.commune, 
 	a.code_insee, 
@@ -136,8 +138,9 @@ select distinct
 	a.region_cnc as region,
 	a.region_administrative as nom_region,
 	b.type_rsa,
-	b.nbr_foyer_rsa as nb_foyers, 
-	b.nbr_pers_rsa as nb_personnes
+	b.nbr_foyer_rsa as nb_foyers_rsa, 
+	b.nbr_pers_rsa as nb_personnes_rsa,
+	a.population_commune as nb_habitants
 from tmp_cnc a
 left join tmp_rsa b on a.commune = b.commune;
 
@@ -211,7 +214,7 @@ SELECT DISTINCT
 	sous_titres AS ST,
 	version_audio AS version,
 	nbr_place AS nb_places
-FROM tmp_programmation ;
+FROM tmp_programation ;
 
 -- Creation table fréquentation 
 

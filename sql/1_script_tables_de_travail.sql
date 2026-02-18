@@ -19,7 +19,7 @@ SELECT
     TRIM(INITCAP(rc.nom)) AS nom_cinema,
     TRIM(INITCAP(rc."région administrative")) AS region_administrative,
     TRIM(INITCAP(rc.adresse)) AS adresse,
-    CAST(rc."code INSEE" AS INTEGER) AS code_insee,
+    rc."code INSEE" AS code_insee,
     rc.commune AS commune,
     rc."population de la commune" AS population_commune,
     CAST(CASE 
@@ -28,7 +28,7 @@ SELECT
     	END AS INTEGER) AS departement, 
     rc."N°UU" AS n_uu,
     rc."unité urbaine" AS unite_urbaine, 
-    CAST(rc."population unité urbaine" AS INTEGER) AS population_unite_urbaine, 
+    rc."population unité urbaine" AS population_unite_urbaine, 
     rc."situation géographique" AS situation_geographique, 
     CAST(rc."écrans" AS INTEGER) AS ecrans, 
     CAST(rc.fauteuils AS INTEGER) AS fauteuils, 
@@ -75,25 +75,28 @@ FROM raw_cnc rc );
 
 CREATE TABLE if not exists TMP_etab_cine AS (
 SELECT 
-    CAST(re."régionCNC" AS INTEGER) AS region_cnc,
+    CAST(re."﻿régionCNC" AS INTEGER) AS region_cnc, -- caractere invisible je n'ai pas réussi a le résoudre autrement qu'en le rendant "visible"
     CAST(re."N° auto" AS INTEGER) AS n_auto,
     TRIM(INITCAP(re.nom)) AS nom_cinema,
     TRIM(INITCAP(re."région administrative")) AS region_administrative,
     TRIM(INITCAP(re.adresse)) AS adresse,
-    CAST(re."code INSEE" AS INTEGER) AS code_insee,
+    re."code INSEE" AS code_insee,
     re.commune AS commune,
     re."population de la commune" AS population_commune,
-    CAST(re."DEP" AS INTEGER) AS departement, 
+    CAST(CASE 
+        	WHEN Trim(re."DEP") IN ('2A', '2B') THEN '20'
+        	ELSE re."DEP"
+    	END AS INTEGER) AS departement,
     re."N°UU" AS n_uu,
     re."unité urbaine" AS unite_urbaine, 
-    CAST(re."population unité urbaine" AS INTEGER) AS population_unite_urbaine, 
+    FLOOR(CAST(re."population unité urbaine" AS FLOAT)) AS population_unite_urbaine,
     re."situation géographique" AS situation_geographique, 
-    CAST(re."écrans" AS INTEGER) AS ecrans, 
-    CAST(re.fauteuils AS INTEGER) AS fauteuils, 
-    CAST(re."semaines d'activité" AS INTEGER) AS semaines_activite, 
-    CAST(re."séances" AS FLOAT) AS seances,
-    CAST(re."entrées 2022" AS INTEGER) AS entree_22,
-    CAST(re."entrées 2021" AS INTEGER) AS entree_21,
+    FLOOR(CAST(re."écrans" AS FLOAT)) AS ecrans, 
+    FLOOR(CAST(re.fauteuils AS FLOAT)) AS fauteuils, 
+    FLOOR(CAST(re."semaines d'activité" AS FLOAT)) AS semaines_activite, 
+    FLOOR(CAST(re."séances" AS FLOAT)) AS seances,
+    FLOOR(CAST(re."entrées 2022" AS FLOAT)) AS entree_22,
+    FLOOR(CAST(re."entrées 2021" AS FLOAT)) AS entree_21,
     re."évolution entrées" AS evolution_entrees, 
     re."tranche d'entrées" AS tranche_entrees, 
     re."programmateur" AS programmateur, 
@@ -109,14 +112,14 @@ SELECT
             ELSE FALSE
         END AS BOOLEAN) AS multiplexe,
     re."zone de la commune" AS zone_commune, 
-    CAST(re."nombre de films programmés" AS INTEGER) AS nb_films_programmes, 
-    CAST(re."nombre de films inédits" AS INTEGER) AS nb_films_inedits, 
-    CAST(re."nombre de films en semaine 1" AS INTEGER) AS nb_films_semaine_1, 
+    FLOOR(CAST(NULLIF(REGEXP_REPLACE(CAST(re."nombre de films programmés" AS TEXT), '[^0-9.]', '', 'g'), '') AS FLOAT)) AS nb_films_programmes, --pcq il y a du contenu 'C' 
+    FLOOR(CAST(re."nombre de films inédits" AS FLOAT)) AS nb_films_inedits, 
+    FLOOR(CAST(re."nombre de films en semaine 1" AS FLOAT)) AS nb_films_semaine_1, 
     CAST(re."PdM en entrées des films français" AS REAL) AS pdm_films_francais, 
     CAST(re."PdM en entrées des films américains" AS REAL) AS pdm_films_americains, 
     CAST(re."PdM en entrées des films européens" AS REAL) AS pdm_films_europeens, 
     CAST(re."PdM en entrées des autres films" AS REAL) AS pdm_autres_films, 
-    CAST(re."films Art et Essai" AS INTEGER) AS nb_films_ae, 
+    FLOOR(CAST(re."films Art et Essai" AS FLOAT)) AS nb_films_ae, 
     CAST(re."PdM en entrées des films Art et Essai" AS REAL) AS pdm_films_ae,
     CAST(re.latitude AS REAL) AS latitude, 
     CAST(re.longitude AS REAL) AS longitude
@@ -126,9 +129,8 @@ FROM raw_etab_cine re );
 -- jeux de données sur la programmation des cinémas indépendants
 	-- le traitement est plus léger car les données concernant les films eux meme proviendront a terme d'un csv different
 
-CREATE TABLE if not exists TMP_programation AS (
-select
-	INITCAP(TRIM(REGEXP_REPLACE(rp.filmtitle, '[^a-zA-Z ]', '', 'g'))) AS titre,
+CREATE TABLE if not exists TMP_programation AS 
+	select TRIM(INITCAP(filmtitle)) AS titre,
 	INITCAP(TRIM(rp.filmdirector)) as realisateur,
 	INITCAP(TRIM(rp.filmcast)) as distribution,
     CAST(rp.filmstoryline as text) as resume,
@@ -159,7 +161,9 @@ select
    	TRIM(INITCAP(rp.cineville)) as ville,
    	rp.description,
    	rp.auditoriumcapacity as nbr_place
-from raw_prog rp);
+from raw_prog rp
+WHERE filmtitle IS NOT NULL AND filmtitle != ''; --sert à éliminer tous les titres des films dont la valeur est NULL
+
 	
 	
 -- jeux de données sur le RSA	
@@ -167,7 +171,7 @@ from raw_prog rp);
 CREATE TABLE if not exists TMP_rsa AS (
 select
 	-- les données ont ete interpretées comme text mais ce sont des dates au format aaaa-mm, j'ai rajouté un jour unique pour qu'elles soient interpretées correctement, cela n'aura pas d'insidance 
-	CAST(rsa."Date référence" || '-01' AS DATE) AS date_ref,
+	CAST(rsa."﻿Date référence" || '-01' AS DATE) AS date_ref, -- comme dans etab on a des problemes de cractere invisible
 	TRIM(rsa."Numéro commune") AS num_commune,
 	TRIM(rsa."Type RSA")  AS type_rsa,
 	TRIM(INITCAP(rsa."Nom commune")) as commune,
@@ -184,9 +188,13 @@ from raw_rsa rsa);
 CREATE TABLE if not exists TMP_wiki1 AS (
 SELECT 
     rw.film AS film_entity,
-    INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rw."filmLabel", '^Q[0-9]+$', ''), ''))) AS titre,
+    TRIM(INITCAP("filmLabel")) AS titre,
 	INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rw."realisateurLabel", '^Q[0-9]+$', ''), ''))) AS realisateur,
-    rw.duree,
+    CASE 
+    WHEN LENGTH(REGEXP_REPLACE(CAST(rw.duree AS TEXT), '[^0-9]', '', 'g')) <= 9
+    THEN CAST(NULLIF(REGEXP_REPLACE(CAST(rw.duree AS TEXT), '[^0-9]', '', 'g'), '') AS INTEGER)
+    ELSE NULL -- Permet de résoudre un problème de donnée trop longue en integer
+	END AS duree,
     INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rw."genreLabel", '^Q[0-9]+$', ''), ''))) AS genre,
     EXTRACT(YEAR FROM (NULLIF(rw."dateLabel", '')::TIMESTAMP))::INTEGER AS annee_sortie,
     -- j'ai eu beauuuucoup de mal à faire fonctionner ca, uniformiser les formats de notation
@@ -212,7 +220,10 @@ SELECT
             ELSE null
 END
     )::INTEGER AS note_sur_100
-FROM raw_wikidata1 rw);
+FROM raw_wikidata1 rw
+WHERE "filmLabel" !~ 'Q[^a-z]' 
+  	AND "filmLabel" IS NOT NULL --Ce "WHERE" sert à n'inclure que les titres des films dont la valeur n'est pas "NULL"
+  	AND "filmLabel" != '');
 
 
 
@@ -221,9 +232,9 @@ FROM raw_wikidata1 rw);
 CREATE TABLE if not exists TMP_wiki2 AS (
 SELECT 
     rd.film AS film_entity,
-    INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rd."filmLabel", '^Q[0-9]+$', ''), ''))) AS titre,
+    TRIM(INITCAP("filmLabel")) AS titre,
     INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rd."realisateurLabel", '^Q[0-9]+$', ''), ''))) AS realisateur,
-    rd.duree,
+    CAST(NULLIF(REGEXP_REPLACE(CAST(rd.duree AS TEXT), '[^0-9]', '', 'g'), '') AS BIGINT) AS duree,
     INITCAP(TRIM(NULLIF(REGEXP_REPLACE(rd."genreLabel", '^Q[0-9]+$', ''), ''))) AS genre,
     EXTRACT(YEAR FROM (NULLIF(rd."dateLabel", '')::TIMESTAMP))::INTEGER AS annee_sortie,
     (case
@@ -248,8 +259,11 @@ SELECT
 END
     )::INTEGER AS note_sur_100
 FROM raw_wikidata2 rd
-);
+WHERE "filmLabel" !~ 'Q[^a-z]' 
+  	AND "filmLabel" IS NOT NULL --Ce "WHERE" sert à n'inclure que les titres des films dont la valeur n'est pas "NULL"
+  	AND "filmLabel" != ''); 
 
+DROP TABLE IF EXISTS TMP_titre; -- DROP TABLE permet de détruire la table pour être sûr de ne pas recréer ensuite des colonnes qui existent déjà 
 --crée une table temporaire pour les titres de film. permet d'éviter des doublons pour des films qui ont plusieurs réalisateurs, genres, etc.
 CREATE TABLE if not exists TMP_titre AS (
     -- Premier bloc : Wikidata 1
@@ -278,17 +292,6 @@ ADD COLUMN id_film INTEGER GENERATED ALWAYS AS IDENTITY;
 
 --transforme cette colonne en clé primaire
 ALTER TABLE TMP_titre 
-ADD PRIMARY KEY (id_film);
+ADD PRIMARY KEY (id_film); 
 
 COMMIT ;
-
-
-
-
-
-
-
-
-
-
-
