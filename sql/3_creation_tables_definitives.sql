@@ -144,7 +144,7 @@ select distinct
 from tmp_cnc a
 left join tmp_rsa b on a.commune = b.commune;
 
---Création de la table utilisateur
+--Création de la table utilisateur, qui reste vide pour l'instant
 
 create table if not exists utilisateur
 (
@@ -282,5 +282,23 @@ SELECT DISTINCT
 	pdm_autres_films AS pdm_autres_films,
 	pdm_films_ae AS pdm_art_et_essai
 FROM tmp_cnc ;
+
+--création de deux tables vides qui seront remplies par les données de l'application
+
+create table calendrier
+(
+	id_utilisateur INTEGER NOT NULL,
+	id_seance INTEGER,
+	FOREIGN KEY (id_utilisateur) REFERENCES utilisateur(id_utilisateur),
+	FOREIGN KEY (id_seance) REFERENCES seance(id_seance)
+);
+
+create table cinema_favori
+(
+	id_utilisateur INTEGER NOT NULL,
+	id_cinema INTEGER,
+	FOREIGN KEY (id_utilisateur) REFERENCES utilisateur(id_utilisateur),
+	FOREIGN KEY (id_cinema) REFERENCES cinema(id_cinema)
+);
 
 COMMIT ;
