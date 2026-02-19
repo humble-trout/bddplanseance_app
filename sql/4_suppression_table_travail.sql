@@ -7,7 +7,7 @@ SET search_path TO psch;
 
 --tables à supp : tables temporaires
 
-DROP TABLE 
+DROP TABLE if exists
     tmp_cnc, 
     tmp_etab_cine, 
     tmp_programation, 
@@ -15,11 +15,8 @@ DROP TABLE
     raw_wikidata1, 
     raw_wikidata2, 
     tmp_titre,
-    --le drop table ne fonctionnait pas pour tmp_wiki* sans inclure une version en majuscule et minuscule
     tmp_wiki1,
-    TMP_wiki1,
 	tmp_wiki2,
-    TMP_wiki2,
     raw_cnc,
     raw_etab_cine,
     raw_prog,
