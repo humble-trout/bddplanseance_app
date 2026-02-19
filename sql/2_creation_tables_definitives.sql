@@ -5,7 +5,7 @@ SET search_path TO psch;
 
 --supprime les tables si elles existent déjà, pour nos tests
 DROP TABLE IF EXISTS 
-    programmation, 
+    programmation_cinema, 
     frequentation, 
     seance, 
     cinema, 
