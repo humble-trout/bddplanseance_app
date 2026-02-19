@@ -5,25 +5,24 @@ SET search_path TO psch;
 
 
 
---tables à supp : temporaire
+--tables à supp : tables temporaires
 
-DROP table tmp_cnc ;
-
-DROP table tmp_etab_cine ;
-
-DROP table tmp_programation ;
-
-DROP table tmp_rsa ;
-
-DROP TABLE raw_wikidata1 ; 
-
-DROP TABLE raw_wikidata2 ; 
-
-DROP table tmp_titre ;
-
-DROP table tmp_wiki1 ;
-
-DROP table tmp_wiki2 ;
-
+DROP TABLE 
+    tmp_cnc, 
+    tmp_etab_cine, 
+    tmp_programation, 
+    tmp_rsa, 
+    raw_wikidata1, 
+    raw_wikidata2, 
+    --le drop table ne fonctionnait pas pour tmp_wiki* sans inclure une version en majuscule et minuscule
+    tmp_wiki1,
+    TMP_wiki1,
+	tmp_wiki2,
+    TMP_wiki2,
+    raw_cnc,
+    raw_etab_cine,
+    raw_prog,
+    raw_rsa
+CASCADE;
 
 commit ;

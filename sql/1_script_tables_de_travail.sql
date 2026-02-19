@@ -12,7 +12,7 @@ SET search_path TO psch;
 	-- correction de la qualité, majoritairement des attributs non reconnus comme int et maj/espace/
 -- on ne corrige pas en profondeur les champs qu'on n'utilisera pas
 
-CREATE TABLE if not exists TMP_CNC AS (
+CREATE TABLE if not exists tmp_cnc AS (
 SELECT 
     CAST(rc."régionCNC" AS INTEGER) AS region_cnc,
     CAST(rc."N° auto" AS INTEGER) AS n_auto,
@@ -73,7 +73,7 @@ FROM raw_cnc rc );
 	-- jeux extremement similaire au précédent donc traitement similaire, mais la reconnaissance du type etaot plus simple
 
 
-CREATE TABLE if not exists TMP_etab_cine AS (
+CREATE TABLE if not exists tmp_etab_cine AS (
 SELECT 
     CAST(re."﻿régionCNC" AS INTEGER) AS region_cnc, -- caractere invisible je n'ai pas réussi a le résoudre autrement qu'en le rendant "visible"
     CAST(re."N° auto" AS INTEGER) AS n_auto,
@@ -129,15 +129,15 @@ FROM raw_etab_cine re );
 -- jeux de données sur la programmation des cinémas indépendants
 	-- le traitement est plus léger car les données concernant les films eux meme proviendront a terme d'un csv different
 
-CREATE TABLE if not exists TMP_programation AS 
+CREATE TABLE if not exists tmp_programation AS 
 	select TRIM(INITCAP(filmtitle)) AS titre,
 	INITCAP(TRIM(rp.filmdirector)) as realisateur,
 	INITCAP(TRIM(rp.filmcast)) as distribution,
     CAST(rp.filmstoryline as text) as resume,
     rp.filmgenre as genre,
     rp.filmcountry as pays_film,
-    CAST(NULLIF(rp.showstart, '') AS TIMESTAMPTZ) AS debut_seance,
-    CAST(NULLIF(rp.showend, '') AS TIMESTAMPTZ) AS fin_seance,
+    CAST(NULLIF(rp.showstart, '') AS timestamp with time zone) AS debut_seance,
+    CAST(NULLIF(rp.showend, '') AS timestamp with time zone) AS fin_seance,
     rp.evenement,
     rp.auditoriumnumber as salle,
     CASE 
@@ -168,7 +168,7 @@ WHERE filmtitle IS NOT NULL AND filmtitle != ''; --sert à éliminer tous les ti
 	
 -- jeux de données sur le RSA	
 
-CREATE TABLE if not exists TMP_rsa AS (
+CREATE TABLE if not exists tmp_rsa AS (
 select
 	-- les données ont ete interpretées comme text mais ce sont des dates au format aaaa-mm, j'ai rajouté un jour unique pour qu'elles soient interpretées correctement, cela n'aura pas d'insidance 
 	CAST(rsa."﻿Date référence" || '-01' AS DATE) AS date_ref, -- comme dans etab on a des problemes de cractere invisible
@@ -185,7 +185,7 @@ from raw_rsa rsa);
 
 -- jeux de données wikidata, informations sur les films
 
-CREATE TABLE if not exists TMP_wiki1 AS (
+CREATE TABLE if not exists tmp_wiki1 AS (
 SELECT 
     rw.film AS film_entity,
     TRIM(INITCAP("filmLabel")) AS titre,
@@ -229,7 +229,7 @@ WHERE "filmLabel" !~ 'Q[^a-z]'
 
 
 -- le script est doublé par ce que le csv a du etre scindé en deux car trop lourd
-CREATE TABLE if not exists TMP_wiki2 AS (
+CREATE TABLE if not exists tmp_wiki2 AS (
 SELECT 
     rd.film AS film_entity,
     TRIM(INITCAP("filmLabel")) AS titre,
@@ -263,9 +263,9 @@ WHERE "filmLabel" !~ 'Q[^a-z]'
   	AND "filmLabel" IS NOT NULL --Ce "WHERE" sert à n'inclure que les titres des films dont la valeur n'est pas "NULL"
   	AND "filmLabel" != ''); 
 
-DROP TABLE IF EXISTS TMP_titre; -- DROP TABLE permet de détruire la table pour être sûr de ne pas recréer ensuite des colonnes qui existent déjà 
+DROP TABLE IF EXISTS tmp_titre; -- DROP TABLE permet de détruire la table pour être sûr de ne pas recréer ensuite des colonnes qui existent déjà 
 --crée une table temporaire pour les titres de film. permet d'éviter des doublons pour des films qui ont plusieurs réalisateurs, genres, etc.
-CREATE TABLE if not exists TMP_titre AS (
+CREATE TABLE if not exists tmp_titre AS (
     -- Premier bloc : Wikidata 1
     SELECT TRIM(INITCAP("filmLabel")) AS titre
     FROM raw_wikidata1
@@ -287,11 +287,11 @@ CREATE TABLE if not exists TMP_titre AS (
 );
 
 --crée une colonne id_film dans films_realisateurs qui génère automatiquement une ID
-ALTER TABLE TMP_titre 
+ALTER TABLE tmp_titre 
 ADD COLUMN id_film INTEGER GENERATED ALWAYS AS IDENTITY;
 
 --transforme cette colonne en clé primaire
-ALTER TABLE TMP_titre 
+ALTER TABLE tmp_titre 
 ADD PRIMARY KEY (id_film); 
 
 COMMIT ;

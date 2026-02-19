@@ -12,7 +12,9 @@ DROP TABLE IF EXISTS
     utilisateur, 
     aire_geographique, 
     film_titre, 
-    film 
+    film,
+	calendrier,
+	cinema_favori
 CASCADE;
 
 --Création de la table film
@@ -41,7 +43,7 @@ SELECT DISTINCT
 	realisateur,
 	annee_sortie AS date_sortie,
 	note_sur_100
-FROM TMP_wiki1
+FROM tmp_wiki1
 where titre is not null
 UNION
 SELECT DISTINCT
@@ -51,7 +53,7 @@ SELECT DISTINCT
 	realisateur,
 	annee_sortie AS date_sortie,
 	note_sur_100
-FROM TMP_wiki2
+FROM tmp_wiki2
 where titre is not null;
 INSERT INTO film
 (titre, genre, realisateur)

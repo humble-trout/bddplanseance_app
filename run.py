@@ -133,60 +133,55 @@ class DataLoader:
     def load_csv_files(self, csv_dir: str):
         logger = Logger("CSVDataLoader")
         csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), csv_dir)
-        csv_files = os.listdir(csv_path)
+        csv_files = sorted(os.listdir(csv_path)) # Ajout de sorted pour l'ordre constant
 
         with self.engine.connect() as connection:
             for csv_file in csv_files:
+                if not csv_file.endswith(".csv"): continue # Sécurité
+                
                 logger.info("\n")
                 file_path = os.path.join(csv_path, csv_file)
                 logger.info(f"Import du fichier CSV : {csv_file}")
 
-                with open(file_path, "r", encoding="utf-8") as f:
-                    sample = f.read(4096)
-                    f.seek(0)
-
-                    sniffer = csv.Sniffer()
-                    dialect = sniffer.sniff(sample)
-                    has_header = sniffer.has_header(sample)
-
-                    logger.info("Propriétés CSV détectées : delimiter={delimiter}, quotechar={quotechar}, escapechar={escapechar}, doublequote={doublequote}, skipinitialspace={skipinitialspace}".format(
-                            delimiter = dialect.delimiter,
-                            quotechar = dialect.quotechar,
-                            escapechar = dialect.escapechar,
-                            doublequote = dialect.doublequote,
-                            skipinitialspace = dialect.skipinitialspace
-                        )
-                    )
-
+                try:
+                    # --- CHANGEMENT MAJEUR ICI ---
+                    # On utilise sep=None et engine='python' pour l'auto-détection
+                    # On passe file_path directement au lieu de 'f' pour laisser Pandas gérer l'ouverture
                     df = pd.read_csv(
-                        f,
-                        sep=dialect.delimiter,
-                        quotechar=dialect.quotechar,
-                        escapechar=dialect.escapechar,
-                        doublequote=dialect.doublequote,
-                        skipinitialspace=dialect.skipinitialspace,
-                        header=0 if has_header else None
+                        file_path,
+                        sep=None,            # Pandas va tester , ; \t tout seul
+                        engine='python',     # Obligatoire pour utiliser sep=None
+                        on_bad_lines='warn', # Va afficher l'erreur de la ligne 87 sans crasher tout le script
+                        encoding='utf-8'     # Change en 'latin-1' si tu as des problèmes d'accents
                     )
+                    
+                    logger.info(f"Structure détectée : {len(df.columns)} colonnes, {len(df)} lignes.")
 
-                    try:
-                        logger.info("Début du transfert vers la base de données et la table " + os.environ.get("pgSchemaImportsCsv"))
-                        df.to_sql(
-                            csv_file.replace(".csv", ""),
-                            schema=os.environ.get("pgSchemaImportsCsv"),
-                            con=connection,
-                            if_exists="replace",
-                            index=False
-                        )
-                        connection.commit()
-                        logger.info(f"Success : {csv_file}")
-                    except Exception as e:
-                        connection.rollback()
-                        if(eval(os.environ.get("failOnFirstCsvError"))):
-                            logger.error(f"Error {csv_file} : {e}")
-                            exit()
-                        else:
-                            logger.warn(f"Error {csv_file} : {e}")
+                    # Nettoyage des noms de colonnes (enlève les espaces et met en minuscule pour SQL)
+                    #df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
 
+                    table_name = csv_file.replace(".csv", "")
+                    schema_name = os.environ.get("pgSchemaImportsCsv", "public") # Valeur par défaut 'public' si env vide
+
+                    logger.info(f"Transfert vers {schema_name}.{table_name}...")
+                    
+                    df.to_sql(
+                        table_name,
+                        schema=schema_name,
+                        con=connection,
+                        if_exists="replace",
+                        index=False
+                    )
+                    connection.commit() # Important si l'isolation level n'est pas autocommit
+                    logger.info(f"Success : {csv_file} importé.")
+
+                except Exception as e:
+                    # connection.rollback() # Pas toujours nécessaire avec Pandas mais prudent
+                    if os.environ.get("failOnFirstCsvError") == "True":
+                        logger.error(f"FATAL Error sur {csv_file} : {e}")
+                        exit()
+                    else:
+                        logger.warn(f"SKIP Error sur {csv_file} : {e}")
 if __name__ == "__main__":
     load_env(".env")
 
