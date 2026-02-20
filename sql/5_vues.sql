@@ -76,10 +76,10 @@ SELECT c.latitude,
     c.longitude,
     pc.art_et_essai,
     ag.type_rsa,
-    ag.nb_foyers AS total_foyers_rsa,
-    ag.nb_personnes AS total_personnes_rsa,
+    ag.nb_foyers_rsa AS total_foyers_rsa,
+    ag.nb_personnes_rsa AS total_personnes_rsa,
     -- calcul de la taille de foyer moyenne pour la couleur/taille du point
-    ROUND((CAST(ag.nb_personnes AS NUMERIC) / NULLIF(ag.nb_foyers, 0)), 2) AS moyenne_pers_foyer
+    ROUND((CAST(ag.nb_personnes_rsa AS NUMERIC) / NULLIF(ag.nb_foyers_rsa, 0)), 2) AS moyenne_pers_foyer
 FROM psch.cinema c
 JOIN psch.aire_geographique ag ON c.id_aire_geographique = ag.id_aire_geographique
 JOIN psch.programmation_cinema pc ON c.id_cinema = pc."id_cinema";
@@ -95,10 +95,10 @@ SELECT
     pc.art_et_essai,
     ag.commune,
     ag.type_rsa,
-    ag.nb_foyers AS nbr_foyer_rsa,
-    ag.nb_personnes AS nbr_pers_rsa,
+    ag.nb_foyers_rsa AS nbr_foyer_rsa,
+    ag.nb_personnes_rsa AS nbr_pers_rsa,
     -- calcul du ratio personnes par foyer au rsa
-    ROUND((CAST(ag.nb_personnes AS NUMERIC) / NULLIF(ag.nb_foyers, 0)), 2) AS ratio_pers_foyer_rsa
+    ROUND((CAST(ag.nb_personnes_rsa AS NUMERIC) / NULLIF(ag.nb_foyers_rsa, 0)), 2) AS ratio_pers_foyer_rsa
 FROM psch.cinema c
 JOIN psch.aire_geographique ag ON c.id_aire_geographique = ag.id_aire_geographique
 JOIN psch.programmation_cinema pc ON c.id_cinema = pc."id_cinema";
