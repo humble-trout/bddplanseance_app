@@ -1,56 +1,60 @@
 BEGIN;
 
--- diagramme radar programmation
+-- diagramme radar programmation des cinéma indépendants
 --séparer en fonction des zones d'études grace au departement, récupérer les % de répartition des différents parametres de films par programmation
 
-
 CREATE OR REPLACE VIEW psch.VUE_3_radar_paris_vs_province AS
--- bloc films francais : calcul de la moyenne de pdm par zone
+-- bloc films francais : moyenne pdm uniquement pour cinemas avec seances
 SELECT CASE WHEN a.code_departement IN ('75') THEN 'Paris' ELSE 'Province' END AS zone_geo,
     'Films Français' AS axe_radar,
     ROUND(AVG(pc.pdm_fr)::numeric, 2) AS valeur_moyenne
 FROM psch.cinema c
 JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
 JOIN psch.programmation_cinema pc ON c.id_cinema = pc."id_cinema"
+WHERE EXISTS (SELECT 1 FROM psch.seance s WHERE s."id_cinema" = c.id_cinema)
 GROUP BY 1, 2
 UNION ALL
--- bloc films americains : analyse de la domination us
+-- bloc films americains : analyse domination us cinemas actifs
 SELECT CASE WHEN a.code_departement IN ('75') THEN 'Paris' ELSE 'Province' END,
     'Films Américains',
     ROUND(AVG(pc.pdm_us)::numeric, 2)
 FROM psch.cinema c
 JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
 JOIN psch.programmation_cinema pc ON c.id_cinema = pc."id_cinema"
+WHERE EXISTS (SELECT 1 FROM psch.seance s WHERE s."id_cinema" = c.id_cinema)
 GROUP BY 1, 2
 UNION ALL
--- bloc films europeens : comparaison des pdm ue
+-- bloc films europeens : comparaison pdm ue cinemas actifs
 SELECT CASE WHEN a.code_departement IN ('75') THEN 'Paris' ELSE 'Province' END,
     'Films Européens',
     ROUND(AVG(pc.pdm_ue)::numeric, 2)
 FROM psch.cinema c
 JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
 JOIN psch.programmation_cinema pc ON c.id_cinema = pc."id_cinema"
+WHERE EXISTS (SELECT 1 FROM psch.seance s WHERE s."id_cinema" = c.id_cinema)
 GROUP BY 1, 2
 UNION ALL
--- bloc autres origines : films hors zones majeures
+-- bloc autres origines : films hors zones majeures cinemas actifs
 SELECT CASE WHEN a.code_departement IN ('75') THEN 'Paris' ELSE 'Province' END,
     'Autres Origines',
     ROUND(AVG(pc.pdm_autres_films)::numeric, 2)
 FROM psch.cinema c
 JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
 JOIN psch.programmation_cinema pc ON c.id_cinema = pc."id_cinema"
+WHERE EXISTS (SELECT 1 FROM psch.seance s WHERE s."id_cinema" = c.id_cinema)
 GROUP BY 1, 2
 UNION ALL
--- bloc art et essai : part de marche des labels ae
+-- bloc art et essai : part de marche labels ae cinemas actifs
 SELECT CASE WHEN a.code_departement IN ('75') THEN 'Paris' ELSE 'Province' END,
     'Art et Essai',
     ROUND(AVG(pc.pdm_art_et_essai)::numeric, 2)
 FROM psch.cinema c
 JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
 JOIN psch.programmation_cinema pc ON c.id_cinema = pc."id_cinema"
+WHERE EXISTS (SELECT 1 FROM psch.seance s WHERE s."id_cinema" = c.id_cinema)
 GROUP BY 1, 2
 UNION ALL
--- bloc part de vo : calcul du ratio de seances vo sur le total
+-- bloc part de vo : calcul ratio (naturellement filtre par le join seance)
 SELECT CASE WHEN a.code_departement IN ('75') THEN 'Paris' ELSE 'Province' END,
     'Part de VO',
     ROUND((COUNT(CASE WHEN s.version = 'VO' THEN 1 END) * 100.0 / NULLIF(COUNT(s.id_seance), 0))::numeric, 2)
