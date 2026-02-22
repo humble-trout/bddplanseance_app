@@ -114,99 +114,10 @@ JOIN psch.programmation_cinema pc ON c.id_cinema = pc."id_cinema";
 
 -- line chart
 
-SET search_path TO psch;
-CREATE OR REPLACE VIEW psch.VUE_2_evolution_frequentation_zones AS
--- bloc 2021 : extraction des entrees par zone pour la premiere annee
-SELECT CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END AS zone_geo,
-    2021 AS annee,
-    SUM(f.entrees_2021) AS total_entrees
-FROM psch.frequentation f
-JOIN psch.cinema c ON f."id_cinema" = c.id_cinema
-JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
-GROUP BY 1, 2
-UNION ALL
--- bloc 2022 : evolution de la frequentation apres reprise
-SELECT CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END,
-    2022,
-    SUM(f.entrees_2022)
-FROM psch.frequentation f
-JOIN psch.cinema c ON f."id_cinema" = c.id_cinema
-JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
-GROUP BY 1, 2
-UNION ALL
--- bloc 2023 : donnees de frequentation annee n-1
-SELECT CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END,
-    2023,
-    SUM(f.entrees_2023)
-FROM psch.frequentation f
-JOIN psch.cinema c ON f."id_cinema" = c.id_cinema
-JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
-GROUP BY 1, 2
-UNION ALL
--- bloc 2024 : estimations ou donnees de l'annee en cours
-SELECT CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END,
-    2024,
-    SUM(f.entrees_2024)
-FROM psch.frequentation f
-JOIN psch.cinema c ON f."id_cinema" = c.id_cinema
-JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
-GROUP BY 1, 2;
-
-
-
--- ak proportion / habitant
-
-
-SET search_path TO psch;
-CREATE OR REPLACE VIEW psch.VUE_22_ratio_frequentation_habitant AS
--- bloc 2021 : ratio entrees sur population totale par zone (donnees cnc)
-SELECT CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END AS zone_geo,
-    2021 AS annee,
-    ROUND(SUM(f.entrees_2021)::numeric / NULLIF(MAX(zp.pop_totale), 0), 2) AS entrees_par_habitant
-FROM psch.frequentation f
-JOIN psch.cinema c ON f."id_cinema" = c.id_cinema
-JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
-JOIN (SELECT CASE WHEN code_departement = '75' THEN '1 - Paris' WHEN code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END AS zg, SUM(nb_habitants) AS pop_totale FROM psch.aire_geographique GROUP BY 1) zp ON zp.zg = (CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END)
-GROUP BY 1, 2
-UNION ALL
--- bloc 2022 : evolution de la consommation de cinema par habitant
-SELECT CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END,
-    2022,
-    ROUND(SUM(f.entrees_2022)::numeric / NULLIF(MAX(zp.pop_totale), 0), 2)
-FROM psch.frequentation f
-JOIN psch.cinema c ON f."id_cinema" = c.id_cinema
-JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
-JOIN (SELECT CASE WHEN code_departement = '75' THEN '1 - Paris' WHEN code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END AS zg, SUM(nb_habitants) AS pop_totale FROM psch.aire_geographique GROUP BY 1) zp ON zp.zg = (CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END)
-GROUP BY 1, 2
-UNION ALL
--- bloc 2023 : analyse du dynamisme de frequentation post-reprise
-SELECT CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END,
-    2023,
-    ROUND(SUM(f.entrees_2023)::numeric / NULLIF(MAX(zp.pop_totale), 0), 2)
-FROM psch.frequentation f
-JOIN psch.cinema c ON f."id_cinema" = c.id_cinema
-JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
-JOIN (SELECT CASE WHEN code_departement = '75' THEN '1 - Paris' WHEN code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END AS zg, SUM(nb_habitants) AS pop_totale FROM psch.aire_geographique GROUP BY 1) zp ON zp.zg = (CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END)
-GROUP BY 1, 2
-UNION ALL
--- bloc 2024 : projection annuelle du nombre d'entrees par citoyen
-SELECT CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END,
-    2024,
-    ROUND(SUM(f.entrees_2024)::numeric / NULLIF(MAX(zp.pop_totale), 0), 2)
-FROM psch.frequentation f
-JOIN psch.cinema c ON f."id_cinema" = c.id_cinema
-JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
-JOIN (SELECT CASE WHEN code_departement = '75' THEN '1 - Paris' WHEN code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END AS zg, SUM(nb_habitants) AS pop_totale FROM psch.aire_geographique GROUP BY 1) zp ON zp.zg = (CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END)
-GROUP BY 1, 2;
-
-
-
 -- entrée / habitant + entree global paris idf province
 --séparer en fonction du code postal, cummuler les entrer et diviser par le nombre d'abitant cummulé de la dites zone, par an
 -- + la somme globale d'entrée par zone
-
-SET search_path TO psch;
-CREATE OR REPLACE VIEW psch.VUE_23_evolution_frequentation_complete AS
+CREATE OR REPLACE VIEW psch.VUE_2_evolution_frequentation_complete AS
 -- bloc 2021 
 SELECT CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END AS zone_geo,
     2021 AS annee,
@@ -252,52 +163,55 @@ JOIN (SELECT CASE WHEN code_departement = '75' THEN '1 - Paris' WHEN code_depart
 GROUP BY 1, 2;
 
 
--- same mais juste idf vs provinces
-
+-- seulement sur les cinéma indépendantsw de notre premier csv mais pas pertinent au niveau de l'echelle, pas assez de données, d'ou l'interet d'avoir élargit la base a l'aide du cnc
 SET search_path TO psch;
-CREATE OR REPLACE VIEW psch.VUE_24_evolution_idf_vs_province AS
--- bloc 2021 
-SELECT CASE WHEN a.code_departement IN ('75','77','78','91','92','93','94','95') THEN '1 - Île-de-France' ELSE '2 - Province' END AS zone_geo,
+CREATE OR REPLACE VIEW psch.VUE_23_evolution_frequentation_independants AS
+-- bloc 2021
+SELECT CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END AS zone_geo,
     2021 AS annee,
     SUM(f.entrees_2021) AS total_entrees_classique,
     ROUND(SUM(f.entrees_2021)::numeric / NULLIF(MAX(zp.pop_totale), 0), 2) AS ratio_par_habitant
 FROM psch.frequentation f
 JOIN psch.cinema c ON f."id_cinema" = c.id_cinema
 JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
-JOIN (SELECT CASE WHEN code_departement IN ('75','77','78','91','92','93','94','95') THEN '1 - Île-de-France' ELSE '2 - Province' END AS zg, SUM(nb_habitants) AS pop_totale FROM psch.aire_geographique GROUP BY 1) zp ON zp.zg = (CASE WHEN a.code_departement IN ('75','77','78','91','92','93','94','95') THEN '1 - Île-de-France' ELSE '2 - Province' END)
+JOIN (SELECT CASE WHEN code_departement = '75' THEN '1 - Paris' WHEN code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END AS zg, SUM(nb_habitants) AS pop_totale FROM psch.aire_geographique GROUP BY 1) zp ON zp.zg = (CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END)
+WHERE EXISTS (SELECT 1 FROM psch.seance s WHERE s."id_cinema" = c.id_cinema)
 GROUP BY 1, 2
 UNION ALL
 -- bloc 2022 
-SELECT CASE WHEN a.code_departement IN ('75','77','78','91','92','93','94','95') THEN '1 - Île-de-France' ELSE '2 - Province' END,
+SELECT CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END,
     2022,
     SUM(f.entrees_2022),
     ROUND(SUM(f.entrees_2022)::numeric / NULLIF(MAX(zp.pop_totale), 0), 2)
 FROM psch.frequentation f
 JOIN psch.cinema c ON f."id_cinema" = c.id_cinema
 JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
-JOIN (SELECT CASE WHEN code_departement IN ('75','77','78','91','92','93','94','95') THEN '1 - Île-de-France' ELSE '2 - Province' END AS zg, SUM(nb_habitants) AS pop_totale FROM psch.aire_geographique GROUP BY 1) zp ON zp.zg = (CASE WHEN a.code_departement IN ('75','77','78','91','92','93','94','95') THEN '1 - Île-de-France' ELSE '2 - Province' END)
+JOIN (SELECT CASE WHEN code_departement = '75' THEN '1 - Paris' WHEN code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END AS zg, SUM(nb_habitants) AS pop_totale FROM psch.aire_geographique GROUP BY 1) zp ON zp.zg = (CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END)
+WHERE EXISTS (SELECT 1 FROM psch.seance s WHERE s."id_cinema" = c.id_cinema)
 GROUP BY 1, 2
 UNION ALL
--- bloc 2023 
-SELECT CASE WHEN a.code_departement IN ('75','77','78','91','92','93','94','95') THEN '1 - Île-de-France' ELSE '2 - Province' END,
+-- bloc 2023
+SELECT CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END,
     2023,
     SUM(f.entrees_2023),
     ROUND(SUM(f.entrees_2023)::numeric / NULLIF(MAX(zp.pop_totale), 0), 2)
 FROM psch.frequentation f
 JOIN psch.cinema c ON f."id_cinema" = c.id_cinema
 JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
-JOIN (SELECT CASE WHEN code_departement IN ('75','77','78','91','92','93','94','95') THEN '1 - Île-de-France' ELSE '2 - Province' END AS zg, SUM(nb_habitants) AS pop_totale FROM psch.aire_geographique GROUP BY 1) zp ON zp.zg = (CASE WHEN a.code_departement IN ('75','77','78','91','92','93','94','95') THEN '1 - Île-de-France' ELSE '2 - Province' END)
+JOIN (SELECT CASE WHEN code_departement = '75' THEN '1 - Paris' WHEN code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END AS zg, SUM(nb_habitants) AS pop_totale FROM psch.aire_geographique GROUP BY 1) zp ON zp.zg = (CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END)
+WHERE EXISTS (SELECT 1 FROM psch.seance s WHERE s."id_cinema" = c.id_cinema)
 GROUP BY 1, 2
 UNION ALL
--- bloc 2024 
-SELECT CASE WHEN a.code_departement IN ('75','77','78','91','92','93','94','95') THEN '1 - Île-de-France' ELSE '2 - Province' END,
+-- bloc 2024
+SELECT CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END,
     2024,
     SUM(f.entrees_2024),
     ROUND(SUM(f.entrees_2024)::numeric / NULLIF(MAX(zp.pop_totale), 0), 2)
 FROM psch.frequentation f
 JOIN psch.cinema c ON f."id_cinema" = c.id_cinema
 JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
-JOIN (SELECT CASE WHEN code_departement IN ('75','77','78','91','92','93','94','95') THEN '1 - Île-de-France' ELSE '2 - Province' END AS zg, SUM(nb_habitants) AS pop_totale FROM psch.aire_geographique GROUP BY 1) zp ON zp.zg = (CASE WHEN a.code_departement IN ('75','77','78','91','92','93','94','95') THEN '1 - Île-de-France' ELSE '2 - Province' END)
+JOIN (SELECT CASE WHEN code_departement = '75' THEN '1 - Paris' WHEN code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END AS zg, SUM(nb_habitants) AS pop_totale FROM psch.aire_geographique GROUP BY 1) zp ON zp.zg = (CASE WHEN a.code_departement = '75' THEN '1 - Paris' WHEN a.code_departement IN ('77','78','91','92','93','94','95') THEN '2 - IDF (Hors Paris)' ELSE '3 - Province' END)
+WHERE EXISTS (SELECT 1 FROM psch.seance s WHERE s."id_cinema" = c.id_cinema)
 GROUP BY 1, 2;
 
 
