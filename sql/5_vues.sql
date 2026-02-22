@@ -4,7 +4,7 @@ BEGIN;
 --séparer en fonction des zones d'études grace au departement, récupérer les % de répartition des différents parametres de films par programmation
 
 CREATE OR REPLACE VIEW psch.VUE_3_radar_paris_vs_province AS
--- bloc films francais : moyenne pdm uniquement pour cinemas avec seances
+-- bloc films francais : moyenne pdm 
 SELECT CASE WHEN a.code_departement IN ('75') THEN 'Paris' ELSE 'Province' END AS zone_geo,
     'Films Français' AS axe_radar,
     ROUND(AVG(pc.pdm_fr)::numeric, 2) AS valeur_moyenne
@@ -14,7 +14,7 @@ JOIN psch.programmation_cinema pc ON c.id_cinema = pc."id_cinema"
 WHERE EXISTS (SELECT 1 FROM psch.seance s WHERE s."id_cinema" = c.id_cinema)
 GROUP BY 1, 2
 UNION ALL
--- bloc films americains : analyse domination us cinemas actifs
+-- bloc films americains : moyenne pdm 
 SELECT CASE WHEN a.code_departement IN ('75') THEN 'Paris' ELSE 'Province' END,
     'Films Américains',
     ROUND(AVG(pc.pdm_us)::numeric, 2)
@@ -24,7 +24,7 @@ JOIN psch.programmation_cinema pc ON c.id_cinema = pc."id_cinema"
 WHERE EXISTS (SELECT 1 FROM psch.seance s WHERE s."id_cinema" = c.id_cinema)
 GROUP BY 1, 2
 UNION ALL
--- bloc films europeens : comparaison pdm ue cinemas actifs
+-- bloc films europeens : moyenne pdm 
 SELECT CASE WHEN a.code_departement IN ('75') THEN 'Paris' ELSE 'Province' END,
     'Films Européens',
     ROUND(AVG(pc.pdm_ue)::numeric, 2)
@@ -34,7 +34,7 @@ JOIN psch.programmation_cinema pc ON c.id_cinema = pc."id_cinema"
 WHERE EXISTS (SELECT 1 FROM psch.seance s WHERE s."id_cinema" = c.id_cinema)
 GROUP BY 1, 2
 UNION ALL
--- bloc autres origines : films hors zones majeures cinemas actifs
+-- bloc autres origines : moyenne pdm 
 SELECT CASE WHEN a.code_departement IN ('75') THEN 'Paris' ELSE 'Province' END,
     'Autres Origines',
     ROUND(AVG(pc.pdm_autres_films)::numeric, 2)
@@ -44,7 +44,7 @@ JOIN psch.programmation_cinema pc ON c.id_cinema = pc."id_cinema"
 WHERE EXISTS (SELECT 1 FROM psch.seance s WHERE s."id_cinema" = c.id_cinema)
 GROUP BY 1, 2
 UNION ALL
--- bloc art et essai : part de marche labels ae cinemas actifs
+-- bloc art et essai : part de marche labels ae
 SELECT CASE WHEN a.code_departement IN ('75') THEN 'Paris' ELSE 'Province' END,
     'Art et Essai',
     ROUND(AVG(pc.pdm_art_et_essai)::numeric, 2)
