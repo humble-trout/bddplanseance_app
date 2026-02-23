@@ -1,2 +1,2 @@
-CREATE database planseance_4;
+CREATE database planseance;
 CREATE schema if not exists psch;
