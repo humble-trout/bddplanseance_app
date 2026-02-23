@@ -215,4 +215,53 @@ WHERE EXISTS (SELECT 1 FROM psch.seance s WHERE s."id_cinema" = c.id_cinema)
 GROUP BY 1, 2;
 
 
+
+---------
+--new
+---------
+
+
+SET search_path TO psch;
+CREATE OR REPLACE VIEW psch.VUE_CARTO_CINEMA_RSA AS
+SELECT 
+    c.nom_cinema AS nom,
+    c.latitude,
+    c.longitude,
+    -- peut etre pas utile 
+    CAST(c.latitude AS TEXT) || ',' || CAST(c.longitude AS TEXT) AS localisation,
+    c.label_art_et_essai,
+    a.commune,
+    a.type_rsa,
+    a.nb_foyers_rsa,
+    a.nb_personnes_rsa,
+    -- Calcul du ratio rsa/habitant %
+    ROUND((a.nb_personnes_rsa::numeric / NULLIF(a.nb_habitants, 0)) * 100, 2) AS taux_rsa_communal
+FROM psch.cinema c
+JOIN psch.aire_geographique a ON c.id_aire_geographique = a.id_aire_geographique
+WHERE 
+    -- Filtre 1 : Uniquement les cinémas indépendants (présents dans la table séance)
+    EXISTS (SELECT 1 FROM psch.seance s WHERE s.id_cinema = c.id_cinema)
+    -- Filtre 2 : Uniquement les communes avec des infos RSA non nulles
+    AND a.type_rsa IS NOT NULL 
+    AND a.nb_personnes_rsa IS NOT NULL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 COMMIT;
