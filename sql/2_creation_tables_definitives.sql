@@ -7,7 +7,8 @@ SET search_path TO psch;
 DROP TABLE IF EXISTS 
     programmation_cinema, 
     frequentation, 
-    seance, 
+    seance,
+	matches,
     cinema, 
     utilisateur, 
     aire_geographique, 
@@ -214,7 +215,6 @@ SELECT DISTINCT
 FROM tmp_programation ;
 
 --Création de la table matches qui reste vide pour l'instant
-DROP TABLE IF EXISTS matches;
 
 create table if not exists matches
 (
