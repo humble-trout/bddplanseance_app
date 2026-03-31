@@ -18,6 +18,7 @@ FROM film_titre ft
 WHERE a.titre ilike ft.titre  ;
 
 --update pour la clé id_cinema
+
 UPDATE seance a
 SET id_cinema = g.id_cinema 
 FROM cinema g

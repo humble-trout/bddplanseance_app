@@ -122,39 +122,34 @@ create table if not exists aire_geographique
 	code_insee VARCHAR NOT NULL,  
 	code_departement VARCHAR NOT NULL,
 	region INTEGER NOT NULL,
-	nom_region VARCHAR,   
-	type_rsa VARCHAR,
-	nb_foyers_rsa INTEGER,
-	nb_personnes_rsa INTEGER,
+	nom_region VARCHAR,
 	nb_habitants INTEGER
 );
 
 --Remplissage de la table aire_geographique
 insert into aire_geographique 
-(commune, code_insee, code_departement, region, nom_region, type_rsa,
-nb_foyers_rsa, nb_personnes_rsa, nb_habitants)
+(commune, code_insee, code_departement, region, nom_region, nb_habitants)
 select distinct 
 	a.commune, 
 	a.code_insee, 
 	a.departement as code_departement, 
 	a.region_cnc as region,
 	a.region_administrative as nom_region,
-	b.type_rsa,
-	b.nbr_foyer_rsa as nb_foyers_rsa, 
-	b.nbr_pers_rsa as nb_personnes_rsa,
 	a.population_commune as nb_habitants
-from tmp_cnc a
-left join tmp_rsa b on a.commune = b.commune;
+from tmp_cnc a;
 
 --Création de la table utilisateur, qui reste vide pour l'instant
 
 create table if not exists utilisateur
 (
 	id_utilisateur INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY key,
-	nom_utilisateur varchar,
-	nom varchar,
-	prénom varchar,
-	date_naissance date
+	nom_utilisateur varchar UNIQUE,
+	nom VARCHAR,
+	date_naissance date,
+	email VARCHAR(150) UNIQUE NOT NULL,
+    motdepasse VARCHAR(255) NOT NULL,
+	bio TEXT,
+	photo_url VARCHAR (255)
 );
 
 --Création de la table cinema 
@@ -197,8 +192,8 @@ create table if not exists seance
 	id_cinema INTEGER,
 	titre varchar,
 	nom_cinema varchar,
-	debut DATE,
-	fin DATE,
+	debut TIMESTAMP,
+	fin TIMESTAMP,
 	ST BOOLEAN,
 	version VARCHAR,
 	nb_places INTEGER,
@@ -217,6 +212,21 @@ SELECT DISTINCT
 	version_audio AS version,
 	nbr_place AS nb_places
 FROM tmp_programation ;
+
+--Création de la table matches qui reste vide pour l'instant
+DROP TABLE IF EXISTS matches;
+
+create table if not exists matches
+(
+	id_matches INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+	id_utilisateur1 INTEGER,
+	id_utilisateur2 INTEGER,
+	id_seance INTEGER,
+	statut VARCHAR(20) DEFAULT 'en_attente',
+	FOREIGN KEY (id_utilisateur1) REFERENCES utilisateur(id_utilisateur),
+	FOREIGN KEY (id_utilisateur2) REFERENCES utilisateur(id_utilisateur),
+	FOREIGN KEY (id_seance) REFERENCES seance(id_seance)
+);
 
 -- Creation table fréquentation 
 
