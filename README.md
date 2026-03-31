@@ -2,7 +2,7 @@
 
 **Le projet doit s’exécuter avec `python run.py` sans aucune modification du code fourni, seuls les fichiers .env et les dossiers sql/ et csv/ doivent être créés et modifiés.**
 
-## APréparation de l'environnement de travail pour le script
+## Préparation de l'environnement de travail pour le script
 
 ### 1. Créer un environnement virtuel
 
